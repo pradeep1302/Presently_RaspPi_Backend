@@ -17,7 +17,7 @@ app.use(bodyParser.json());
 app.use(cookieParser());
 
 const corsOptions = {
-  origin: "http://localhost:3000",
+  origin: ["http://localhost:3000", "https://medibook-app.vercel.app"],
   credentials: true,
   optionSuccessStatus: 200,
 };
