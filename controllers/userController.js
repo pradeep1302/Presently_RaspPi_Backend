@@ -6,12 +6,6 @@ const bcrypt = require("bcryptjs");
 const { fileSizeFormatter } = require("../utils/fileUpload");
 const cloudinary = require("cloudinary").v2;
 
-cloudinary.config({
-  cloud_name: process.env.CLOUD_NAME,
-  api_key: process.env.API_KEY,
-  api_secret: process.env.API_SECRET,
-});
-
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
 };
@@ -51,9 +45,13 @@ const registerUser = asyncHandler(async (req, res) => {
       uploadedFile = await cloudinary.uploader.upload(req.file.path, {
         folder: "MediBook App",
         resource_type: "image",
+        api_key: process.env.API_KEY,
+        api_secret: process.env.API_SECRET,
+        cloud_name: process.env.CLOUD_NAME,
       });
     } catch (error) {
       res.status(500);
+      console.log(error);
       throw new Error("Image could not be uploaded");
     }
 
@@ -267,6 +265,9 @@ const updateUser = asyncHandler(async (req, res) => {
       uploadedFile = await cloudinary.uploader.upload(req.file.path, {
         folder: "MediBook App",
         resource_type: "image",
+        api_key: process.env.API_KEY,
+        api_secret: process.env.API_SECRET,
+        cloud_name: process.env.CLOUD_NAME,
       });
     } catch (error) {
       res.status(500);
