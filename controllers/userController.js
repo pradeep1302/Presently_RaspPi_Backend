@@ -65,15 +65,20 @@ const registerUser = asyncHandler(async (req, res) => {
 
   var ddata;
   if (role === "doctor") {
-    ddata = await Doctor.create({
-      name,
-      email,
-      password,
-      address,
-      phone,
-      bio,
-      photo: fileData.filePath,
-    });
+    try {
+      ddata = await Doctor.create({
+        name,
+        email,
+        password,
+        address,
+        phone,
+        bio,
+        photo: fileData.filePath,
+      });
+    } catch (error) {
+      res.status(500);
+      throw new Error(error);
+    }
   }
   if (role === "patient") {
     ddata = await Patient.create({
