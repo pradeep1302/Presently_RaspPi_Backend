@@ -16,11 +16,15 @@ const formatDate = (data) => {
 const registerUser = asyncHandler(async (req, res) => {
   const { name, email, password, phone, address, bio, role, dob } = req.body;
 
-  if (!name || !email || !password || !address) {
+  if (!name || !email || !password || !address || !phone) {
     res.status(400);
     throw new Error("Please fill in all required fields");
   }
-  if (role != "doctor" && !dob) {
+  if (role === "doctor" && !bio) {
+    res.status(400);
+    throw new Error("Please fill in all required fields");
+  }
+  if (role === "patient" && !dob) {
     res.status(400);
     throw new Error("Please fill in all required fields");
   }
@@ -52,7 +56,7 @@ const registerUser = asyncHandler(async (req, res) => {
     } catch (error) {
       res.status(500);
       console.log(error);
-      throw new Error(error);
+      throw new Error("Image could not be uploaded");
     }
 
     fileData = {
