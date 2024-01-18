@@ -14,14 +14,13 @@ const {
   getPatients,
 } = require("../controllers/userController");
 const protect = require("../middleware/authMiddleware");
-const { upload } = require("../utils/fileUpload");
 
-router.post("/register", upload.single("image"), registerUser);
+router.post("/register", registerUser);
 router.post("/login", loginUser);
 router.get("/logout", logout);
 router.get("/getuser", protect, getUser);
 router.get("/loginstatus", loginStatus);
-router.patch("/updateuser", protect, upload.single("image"), updateUser);
+router.patch("/updateuser", protect, updateUser);
 router.patch("/changepassword", protect, changePassword);
 router.get("/getdoctor/:id", getDoctor);
 router.get("/getdoctors", getDoctors);
