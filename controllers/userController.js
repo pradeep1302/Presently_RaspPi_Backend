@@ -4,7 +4,6 @@ const Patient = require("../models/patientModel");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const { fileSizeFormatter } = require("../utils/fileUpload");
-const cloudinary = require("cloudinary").v2;
 
 const generateToken = (id) => {
   return jwt.sign({ id }, process.env.JWT_SECRET, { expiresIn: "1d" });
@@ -14,7 +13,8 @@ const formatDate = (data) => {
   return date;
 };
 const registerUser = asyncHandler(async (req, res) => {
-  const { name, email, password, phone, address, bio, role, dob } = req.body;
+  const { name, email, password, phone, address, bio, role, dob, photo } =
+    req.body;
 
   if (!name || !email || !password || !address || !phone) {
     res.status(400);
@@ -40,33 +40,6 @@ const registerUser = asyncHandler(async (req, res) => {
     throw new Error("Email has already been registered");
   }
 
-  // Handle Image upload
-  let fileData = {};
-  if (req.file) {
-    // Save image to cloudinary
-    let uploadedFile;
-    try {
-      uploadedFile = await cloudinary.uploader.upload(req.file.path, {
-        folder: "MediBook App",
-        resource_type: "image",
-        api_key: process.env.API_KEY,
-        api_secret: process.env.API_SECRET,
-        cloud_name: process.env.CLOUD_NAME,
-      });
-    } catch (error) {
-      res.status(500);
-      console.log(error);
-      throw new Error("Image could not be uploaded");
-    }
-
-    fileData = {
-      fileName: req.file.originalname,
-      filePath: uploadedFile.secure_url,
-      fileType: req.file.mimetype,
-      fileSize: fileSizeFormatter(req.file.size, 2),
-    };
-  }
-
   var ddata;
   if (role === "doctor") {
     try {
@@ -77,22 +50,27 @@ const registerUser = asyncHandler(async (req, res) => {
         address,
         phone,
         bio,
-        photo: fileData.filePath,
+        photo,
       });
     } catch (error) {
       res.status(500);
-      throw new Error(error);
+      throw new Error("An error occurred");
     }
   }
   if (role === "patient") {
-    ddata = await Patient.create({
-      name,
-      email,
-      password,
-      address,
-      phone,
-      dob: formatDate(dob),
-    });
+    try {
+      ddata = await Patient.create({
+        name,
+        email,
+        password,
+        address,
+        phone,
+        dob: formatDate(dob),
+      });
+    } catch (error) {
+      res.status(500);
+      throw new Error("An error occurred");
+    }
   }
 
   const token = generateToken(ddata._id);
@@ -265,31 +243,6 @@ const updateUser = asyncHandler(async (req, res) => {
   Role == "doctor"
     ? (user = await Doctor.findById(req.user._id))
     : (user = await Patient.findById(req.user._id));
-  // Handle Image upload
-  let fileData = {};
-  if (req.file) {
-    // Save image to cloudinary
-    let uploadedFile;
-    try {
-      uploadedFile = await cloudinary.uploader.upload(req.file.path, {
-        folder: "MediBook App",
-        resource_type: "image",
-        api_key: process.env.API_KEY,
-        api_secret: process.env.API_SECRET,
-        cloud_name: process.env.CLOUD_NAME,
-      });
-    } catch (error) {
-      res.status(500);
-      throw new Error("Image could not be uploaded");
-    }
-
-    fileData = {
-      fileName: req.file.originalname,
-      filePath: uploadedFile.secure_url,
-      fileType: req.file.mimetype,
-      fileSize: fileSizeFormatter(req.file.size, 2),
-    };
-  }
   if (user) {
     const { _id, name, email, photo, phone, address, bio } = user;
     user.email = email;
@@ -298,7 +251,7 @@ const updateUser = asyncHandler(async (req, res) => {
     user.phone = req.body.phone || phone;
     user.address = req.body.address || address;
     user.bio = req.body.bio || bio;
-    user.photo = fileData.filePath || photo;
+    user.photo = req.body.photo || photo;
 
     const updatedUser = await user.save();
     res.status(200).json({
