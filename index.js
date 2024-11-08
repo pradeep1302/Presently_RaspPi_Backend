@@ -29,7 +29,7 @@ app.get("/", (req, res) => {
 });
 
 app.use(errorHandler);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 4000;
 mongoose
 	.connect(process.env.MONGO_URI)
 	.then(() => {
