@@ -5,13 +5,13 @@ const Lecture = require("../models/lectureModel");
 
 const getSubjects = asyncHandler(async (req, res) => {
 	const teacher = await Teacher.findOne({
-    teacherId: req.params.id
-  }).populate([
-    {
-      path: "subjects",
-      select: "_id subjectCode name",
-    },
-  ]);
+		teacherId: req.params.id,
+	}).populate([
+		{
+			path: "subjects",
+			select: "_id subjectCode name",
+		},
+	]);
 	if (teacher) {
 		const { subjects } = teacher;
 		res.status(200).json({
@@ -32,7 +32,7 @@ const getEncodings = asyncHandler(async (req, res) => {
 		res.status(404);
 		throw new Error("Subject not found");
 	}
-	res.status(200).json({ student:subject.students });
+	res.status(200).json({ student: subject.students });
 });
 
 const createLecture = asyncHandler(async (req, res) => {
@@ -43,13 +43,20 @@ const createLecture = asyncHandler(async (req, res) => {
 		throw new Error("Please fill all fields");
 	}
 
+	const existingTeacher = await Teacher.findOne({ teacherId: teacher });
+	const existingSubject = await Subject.findById(subject);
+
+	if (!existingTeacher || !existingSubject) {
+		res.status(400);
+		throw new Error("Invalid Teacher or Subject");
+	}
+
 	const lecture = await Lecture.create({
-		subject,
-		teacher,
+		subject: existingSubject._id,
+		teacher: existingTeacher._id,
 		date,
 		presentStudents,
 	});
-
 	res.status(201).json(lecture);
 });
 
